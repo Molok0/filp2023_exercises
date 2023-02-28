@@ -20,18 +20,13 @@ class Vector(val x: Double, val y: Double) {
   override def equals(other: Any): Boolean = other.equals(x, y)
 
   // Vector(x, y)
-  override def toString: String = "Vector(" + x + ", " + y + ")";
+  override def toString: String = s"Vector($x, $y)";
 }
 
 object Vector {
   def fromAngle(angle: Double, length: Double): Vector = new Vector(length * Math.cos(angle), length * Math.sin(angle))
 
-  def sum(list: List[Vector]): Vector = {
-    var a = new Vector(0, 0);
-    for (i <- list) {
-      a = i + a
-    }
-    a
-  }
+  def sum(list: List[Vector]): Vector = list.foldLeft(new Vector(0,0))((m, n) => m + n)
+
   def unapply(arg: Vector): Option[(Double, Double)] = Some(arg.x, arg.y)
 }
