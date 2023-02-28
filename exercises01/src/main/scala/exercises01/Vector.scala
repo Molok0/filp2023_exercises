@@ -26,7 +26,7 @@ class Vector(val x: Double, val y: Double) {
 object Vector {
   def fromAngle(angle: Double, length: Double): Vector = new Vector(length * Math.cos(angle), length * Math.sin(angle))
 
-  def sum(list: List[Vector]): Vector = list.foldLeft(new Vector(0,0))((m, n) => m + n)
+  def sum(list: List[Vector]): Vector = list.foldLeft(new Vector(0, 0))((m, n) => m + n)
 
   def unapply(arg: Vector): Option[(Double, Double)] = Some(arg.x, arg.y)
 }
