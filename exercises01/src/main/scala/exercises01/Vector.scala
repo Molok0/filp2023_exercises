@@ -1,5 +1,7 @@
 package exercises01
 
+import exercises01.Vector.vector
+
 import scala.math.sqrt
 import scala.math.pow
 
@@ -14,19 +16,25 @@ class Vector(val x: Double, val y: Double) {
 
   def euclideanLength: Double = sqrt(pow(x, 2) + pow(y, 2));
 
-  def normalized: Vector =
-    if (euclideanLength == 0) (new Vector(0, 0)) else (new Vector(x / euclideanLength, y / euclideanLength))
+  def normalized: Vector = {
+    val vectorLen = euclideanLength
+    if (vectorLen == 0) (vector) else (new Vector(x / vectorLen, y / vectorLen))
+  }
 
-  override def equals(other: Any): Boolean = other.equals(x, y)
+  override def equals(other: Any): Boolean = other match {
+    case Vector(x, y) => true
+    case _            => false
+  };
 
   // Vector(x, y)
   override def toString: String = s"Vector($x, $y)";
 }
 
 object Vector {
+  var vector                                           = new Vector(0, 0)
   def fromAngle(angle: Double, length: Double): Vector = new Vector(length * Math.cos(angle), length * Math.sin(angle))
 
-  def sum(list: List[Vector]): Vector = list.foldLeft(new Vector(0, 0))((m, n) => m + n)
+  def sum(list: List[Vector]): Vector = list.foldLeft(vector)((m, n) => m + n)
 
   def unapply(arg: Vector): Option[(Double, Double)] = Some(arg.x, arg.y)
 }
