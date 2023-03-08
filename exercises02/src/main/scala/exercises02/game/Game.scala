@@ -22,9 +22,9 @@ class Game(controller: GameController) {
   final def play(number: Int): Unit = {
 
     controller.askNumber();
-    val gameNumber = controller.nextLine();
+    val gameNumb = controller.nextLine();
 
-    gameNumber.toIntOption match {
+    gameNumb.toIntOption match {
 
       case Some(value) => {
         if (value < number) {
@@ -38,7 +38,7 @@ class Game(controller: GameController) {
         }
       }
       case None => {
-        if (gameNumber == GameController.IGiveUp) {
+        if (gameNumb == GameController.IGiveUp) {
           controller.giveUp(number)
         } else {
           controller.wrongInput
