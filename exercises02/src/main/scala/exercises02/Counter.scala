@@ -29,7 +29,8 @@ object Counter {
     */
   def countNumbers(text: String): Map[String, Int] = {
     text.toLowerCase
-      .split("[\\s!?:\\n\\t\\r]").filter(_.nonEmpty)
+      .split("[\\s!?:\\n\\t\\r]")
+      .filter(_.nonEmpty)
       .filter(_.matches("(\\d*)([.,]?)(\\d*)"))
       .groupMapReduce(identity)(_ => 1)(_ + _)
   }
