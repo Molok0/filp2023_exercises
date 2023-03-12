@@ -3,13 +3,16 @@ package exercises02
 import scala.util.matching.Regex
 
 object Counter {
+  val regexCountWords: Regex        = "[\\s.,!?:()\\n\\t\\r]".r;
+  val regexCountEnglishWords: Regex = "[\\s.,!?:()\\n\\t\\r[а-яА-ЯёЁ]]".r;
+  val regexCountNumbers: Regex      = "[\\s!?:\\n\\t\\r]".r;
 
   /**
     * Посчитать количество вхождений слов в тексте
     * слово отделено символами [\s.,!?:\n\t\r]
     */
   def countWords(text: String): Map[String, Int] = {
-    text.toLowerCase.split("[\\s.,!?:()\\n\\t\\r]").filter(a => a != "").groupMapReduce(identity)(_ => 1)(_ + _)
+    text.toLowerCase.split(regexCountWords.regex).filter(a => a != "").groupMapReduce(identity)(_ => 1)(_ + _)
   }
 
   /**
@@ -18,8 +21,8 @@ object Counter {
     */
   def countEnglishWords(text: String): Map[String, Int] = {
     text.toLowerCase
-      .split("[\\s.,!?:()\\n\\t\\r[а-яА-ЯёЁ]]")
-      .filter(a => a != "")
+      .split(regexCountEnglishWords.regex)
+      .filter(_.nonEmpty)
       .groupMapReduce(identity)(_ => 1)(_ + _)
   }
 
@@ -29,7 +32,7 @@ object Counter {
     */
   def countNumbers(text: String): Map[String, Int] = {
     text.toLowerCase
-      .split("[\\s!?:\\n\\t\\r]")
+      .split(regexCountNumbers.regex)
       .filter(_.nonEmpty)
       .filter(_.matches("(\\d*)([.,]?)(\\d*)"))
       .groupMapReduce(identity)(_ => 1)(_ + _)
