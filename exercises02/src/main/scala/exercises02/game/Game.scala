@@ -21,8 +21,8 @@ class Game(controller: GameController) {
   @tailrec
   final def play(number: Int): Unit = {
 
-    controller.askNumber();
-    val gameNumb = controller.nextLine();
+    controller.askNumber()
+    val gameNumb = controller.nextLine()
 
     gameNumb.toIntOption match {
 
