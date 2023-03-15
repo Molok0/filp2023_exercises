@@ -32,7 +32,7 @@ object Counter {
     regexCountNumbers
       .split(text.toLowerCase())
       .filter(_.nonEmpty)
-      .filter(_.matches(regexForNumber.regex))
+      .filter(regexForNumber.matches)
       .groupMapReduce(identity)(_ => 1)(_ + _)
   }
 }
