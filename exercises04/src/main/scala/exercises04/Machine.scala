@@ -25,17 +25,14 @@ object Machine {
       (machine, inputs)
     } else {
       inputs match {
-        case ::(head, next) =>
-          head match {
-            case Input.Coin => {
-              if (machine.locked == false) run(Machine(false, machine.candies, machine.coins), next)
-              else run(Machine(false, machine.candies, machine.coins + 1), next)
-            }
-            case Input.Turn => {
-              if (machine.locked == true) run(Machine(true, machine.candies, machine.coins), next)
-              else run(Machine(true, machine.candies - 1, machine.coins), next)
-            }
-          }
+        case Input.Coin :: tail => {
+          if (machine.locked == false) run(Machine(false, machine.candies, machine.coins), tail)
+          else run(Machine(false, machine.candies, machine.coins + 1), tail)
+        }
+        case Input.Turn :: tail => {
+          if (machine.locked == true) run(Machine(true, machine.candies, machine.coins), tail)
+          else run(Machine(true, machine.candies - 1, machine.coins), tail)
+        }
         case Nil => (machine, Nil)
       }
     }
