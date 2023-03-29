@@ -15,5 +15,16 @@ object Combinators {
   //
   // Напишите функцию, используя комбинаторы стандартной библиотеки,
   // которая проведёт полную реакцию
-  def react(ipt: String): String = ???
+  def react(ipt: String): String = {
+    val result = ipt.foldLeft(List.empty[Char]) { (acc, c) =>
+      acc match {
+        case x :: xs if check(x, c) => xs
+        case _                      => c :: acc
+      }
+    }
+    result.reverse.mkString
+  }
+
+  def check(c1: Char, c2: Char): Boolean = c1.toLower == c2.toLower && c1 != c2
+
 }
