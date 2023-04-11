@@ -12,10 +12,7 @@ object Ignore {
 object IgnoreInstances {
 
   implicit val ignoreOption: Ignore[Option] = new Ignore[Option] {
-    def ignore[A](m: Option[A])(f: A => Boolean): Option[A] = m match {
-      case Some(a) if f(a) => None
-      case _               => m
-    }
+    def ignore[A](m: Option[A])(f: A => Boolean): Option[A] = m.filterNot(f)
   }
 
   implicit val ignoreList: Ignore[List] = new Ignore[List] {

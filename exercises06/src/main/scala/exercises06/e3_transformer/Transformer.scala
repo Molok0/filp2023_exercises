@@ -10,13 +10,7 @@ trait Transformer[A, B] {
 
 object TransformerInstances {
   implicit val transformer: Transformer[RawUser, User] = new Transformer[RawUser, User] {
-    def toOption(a: RawUser): Option[User] = {
-      for {
-        id         <- a.id.toLongOption
-        firstName  <- a.firstName.filter(_.nonEmpty)
-        secondName <- a.secondName.filter(_.nonEmpty)
-      } yield User(id, UserName(firstName, secondName, a.thirdName))
-    }
+    def toOption(a: RawUser): Option[User] = toEither(a).toOption
 
     def toEither(a: RawUser): Either[Error, User] = {
       for {

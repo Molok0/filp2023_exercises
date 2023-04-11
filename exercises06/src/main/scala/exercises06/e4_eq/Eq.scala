@@ -9,20 +9,20 @@ object Eq {
 }
 
 object EqInstances {
-  implicit val intEq: Eq[Int] = (a: Int, b: Int) => a == b
+  implicit val intEq: Eq[Int] = _ == _
 
-  implicit val boolEq: Eq[Boolean] = (a: Boolean, b: Boolean) => a == b
+  implicit val boolEq: Eq[Boolean] = _ == _
 
-  implicit def optionEq[A](implicit eqA: Eq[A]): Eq[Option[A]] =
+  implicit def optionEq[A: Eq]: Eq[Option[A]] =
     (a: Option[A], b: Option[A]) =>
       (a, b) match {
         case (None, None)       => true
-        case (Some(x), Some(y)) => eqA.eqv(x, y)
+        case (Some(x), Some(y)) => Eq[A].eqv(x, y)
         case _                  => false
       }
 
-  implicit def listEq[A](implicit eqA: Eq[A]): Eq[List[A]] =
-    (a: List[A], b: List[A]) => a.length == b.length && a.zip(b).forall { case (a, b) => eqA.eqv(a, b) }
+  implicit def listEq[A: Eq]: Eq[List[A]] =
+    (a: List[A], b: List[A]) => a.length == b.length && a.zip(b).forall { case (a, b) => Eq[A].eqv(a, b) }
 
 }
 
