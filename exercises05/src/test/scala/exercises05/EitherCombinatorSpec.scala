@@ -6,6 +6,7 @@ import either.EitherCombinators._
 case class Error(message: String)
 
 class EitherCombinatorSpec extends AnyWordSpec {
+//
   "Either.map" should {
     "work" in {
       assert(Left[Error, Int](Error("abc")).map(_ => 10) == Left[Error, Int](Error("abc")))

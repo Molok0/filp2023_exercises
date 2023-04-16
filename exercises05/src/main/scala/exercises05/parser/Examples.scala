@@ -3,6 +3,8 @@ package exercises05.parser
 import exercises05.either.EitherCombinators._
 import Error._
 
+import scala.util.matching.Regex
+
 object Examples {
 
   /**
@@ -13,7 +15,25 @@ object Examples {
     * если rawUser.banned, то вернуть None
     * используйте for-comprehension
     */
-  def transformToOption(rawUser: RawUser): Option[User] = ???
+  private val regex: Regex = ("(\\d{4}) (\\d{6})".r)
+  def transformToOption(rawUser: RawUser): Option[User] = {
+
+    for {
+      userId <- rawUser.id.toLongOption
+      userPassport <- rawUser.passport match {
+        case Some(value) =>
+          value.trim match {
+            case regex(ser, num) => Some(Some(Passport(ser.toLong, num.toLong)))
+            case _               => None
+          }
+        case None => Some(None)
+      }
+      userFirstName  <- rawUser.firstName
+      userSecondName <- rawUser.secondName
+      if (!rawUser.banned)
+
+    } yield User(userId, UserName(userFirstName, userSecondName, rawUser.thirdName), userPassport)
+  }
 
   /**
     * если rawUser.firstName или rawUser.secondName == None, то функция должна вернуть Left(InvalidName)
@@ -29,5 +49,21 @@ object Examples {
     * используйте for-comprehension
     * но для того, чтобы for-comprehension заработал надо реализовать map и flatMap в Either
     */
-  def transformToEither(rawUser: RawUser): Either[Error, User] = ???
+  def transformToEither(rawUser: RawUser): Either[Error, User] = {
+    for {
+      _              <- if (rawUser.banned) Left(Banned) else Right(true)
+      userId         <- Either.fromOption(rawUser.id.toLongOption)(InvalidId)
+      userFirstName  <- Either.fromOption(rawUser.firstName)(InvalidName)
+      userSecondName <- Either.fromOption(rawUser.secondName)(InvalidName)
+      userPassport <- Either.fromOption(rawUser.passport match {
+        case Some(value) =>
+          value.trim match {
+            case regex(ser, num) => Some(Some(Passport(ser.toLong, num.toLong)))
+            case _               => None
+          }
+        case None => Some(None)
+      })(InvalidPassport)
+
+    } yield User(userId, UserName(userFirstName, userSecondName, rawUser.thirdName), userPassport)
+  }
 }
