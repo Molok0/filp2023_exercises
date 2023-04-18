@@ -69,7 +69,22 @@ object BetterStatelessRandom {
   case class RandomState[A](run: Random => (A, Random))
 
   object RandomState {
-    implicit val monad: Monad[RandomState] = ???
+    implicit val monad: Monad[RandomState[*]] = new Monad[RandomState[*]] {
+
+      def pure[A](a: A): RandomState[A] =
+        RandomState(s => (a, s))
+
+      override def map[A, B](fa: RandomState[A])(f: A => B): RandomState[B] = RandomState(rnd => fa.run(rnd) match {
+        case (a, random) => (f(a), random)
+      })
+
+      override def flatMap[A, B](fa: RandomState[A])(f: A => RandomState[B]): RandomState[B] =
+        RandomState(s =>
+          fa.run(s) match {
+            case (value, nextState) => f(value).run(nextState)
+          }
+        )
+    }
   }
 
   // Теперь класс RandomState может быть использован внутри for comprehension
