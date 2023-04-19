@@ -5,30 +5,38 @@ import exercises07.typeclasses._
 
 object Exercise01 {
   object Syntax {
-
-    implicit class SOps[A](private val a: A) extends AnyVal {
-      def |+|(b: A)(implicit semigroup: Semigroup[A]): A =
-        semigroup.combine(a, b)
-
-      def pure[F[_]: Applicative]: F[A] = Applicative[F].pure(a)
+    implicit class SemigroupOps[A](private val a: A) {
+      def |+|(b: A)(implicit S: Semigroup[A]): A =
+        S.combine(a, b)
+    }
+    implicit class ApplicativeOps[F[_], A](private val fa: F[A]) {
+      def aproduct[B](fb: F[B])(implicit ap: Applicative[F]): F[(A, B)] =
+        ap.product(fa, fb)
     }
 
-    implicit class AppOps[F[_], A](private val fa: F[A]) extends AnyVal {
+    implicit class PureOps[A](private val a: A) {
+      def pure[F[_]: Applicative]: F[A] =
+        Applicative[F].pure(a)
+    }
 
-      def aproduct[B](fb: F[B])(implicit ap: Applicative[F]): F[(A, B)] = ap.product(fa, fb)
+    implicit class FunctorOps[F[_], A](private val fa: F[A]) {
+      def map[B](f: A => B)(implicit functor: Functor[F]): F[B] =
+        functor.map(fa)(f)
+    }
 
-      def ap[B](ff: F[A => B])(implicit ap: Applicative[F]): F[B] = Applicative[F].ap(ff)(fa)
-
+    implicit class TraverseOps[F[_], A](private val fa: F[A]) {
       def traverse[G[_]: Applicative, B](f: A => G[B])(implicit traverse: Traverse[F]): G[F[B]] =
         traverse.traverse(fa)(f)
+    }
 
-      def foldLeft[B](b: B)(ff: (B, A) => B)(implicit foldable: Foldable[F]): B = foldable.foldLeft(fa, b)(ff)
+    implicit class FoldableOps[F[_], A](private val a: F[A]) {
+      def combineAll(implicit b: Monoid[A], fl: Foldable[F]): A = {
+        fl.foldLeft(a, b.empty)(b.combine)
+      }
 
-      def map[B](f: A => B)(implicit functor: Functor[F]): F[B] = functor.map(fa)(f)
-
-      def combineAll(implicit foldable: Foldable[F], monoid: Monoid[A]): A =
-        foldable.foldLeft(fa, monoid.empty)(monoid.combine)
-
+      def foldLeft[B](b: B)(f: (B, A) => B)(implicit fl: Foldable[F]): B = {
+        fl.foldLeft(a, b)(f)
+      }
     }
   }
 
@@ -75,14 +83,7 @@ object Exercise01 {
           case None    => Option.empty[B].pure[G]
         }
 
-        def ap[A, B](ff: Option[A => B])(fa: Option[A]): Option[B] = ff match {
-          case Some(f) =>
-            fa match {
-              case Some(x) => Some(f(x))
-              case None    => Option.empty[B]
-            }
-          case None => Option.empty[B]
-        }
+        def ap[A, B](ff: Option[A => B])(fa: Option[A]): Option[B] = ff.zip(fa).map { case (f, a) => f(a) }
 
         def pure[A](x: A): Option[A] =
           Some(x)
@@ -106,7 +107,7 @@ object Exercise01 {
         }
 
         def ap[A, B](ff: NonEmptyList[A => B])(fa: NonEmptyList[A]): NonEmptyList[B] =
-          NonEmptyList(ff.head(fa.head), fa.tail.ap(ff.tail))
+          NonEmptyList(ff.head(fa.head), ff.tail.zip(fa.tail).map { case (func, value) => func(value) })
 
         def pure[A](x: A): NonEmptyList[A] = NonEmptyList(x)
 
