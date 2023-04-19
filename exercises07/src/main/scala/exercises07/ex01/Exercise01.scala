@@ -5,31 +5,31 @@ import exercises07.typeclasses._
 
 object Exercise01 {
   object Syntax {
-    implicit class SemigroupOps[A](private val a: A) {
+    implicit class SemigroupOps[A](private val a: A) extends AnyVal {
       def |+|(b: A)(implicit S: Semigroup[A]): A =
         S.combine(a, b)
     }
-    implicit class ApplicativeOps[F[_], A](private val fa: F[A]) {
+    implicit class ApplicativeOps[F[_], A](private val fa: F[A]) extends AnyVal {
       def aproduct[B](fb: F[B])(implicit ap: Applicative[F]): F[(A, B)] =
         ap.product(fa, fb)
     }
 
-    implicit class PureOps[A](private val a: A) {
+    implicit class PureOps[A](private val a: A) extends AnyVal {
       def pure[F[_]: Applicative]: F[A] =
         Applicative[F].pure(a)
     }
 
-    implicit class FunctorOps[F[_], A](private val fa: F[A]) {
+    implicit class FunctorOps[F[_], A](private val fa: F[A]) extends AnyVal {
       def map[B](f: A => B)(implicit functor: Functor[F]): F[B] =
         functor.map(fa)(f)
     }
 
-    implicit class TraverseOps[F[_], A](private val fa: F[A]) {
+    implicit class TraverseOps[F[_], A](private val fa: F[A]) extends AnyVal {
       def traverse[G[_]: Applicative, B](f: A => G[B])(implicit traverse: Traverse[F]): G[F[B]] =
         traverse.traverse(fa)(f)
     }
 
-    implicit class FoldableOps[F[_], A](private val a: F[A]) {
+    implicit class FoldableOps[F[_], A](private val a: F[A]) extends AnyVal {
       def combineAll(implicit b: Monoid[A], fl: Foldable[F]): A = {
         fl.foldLeft(a, b.empty)(b.combine)
       }
