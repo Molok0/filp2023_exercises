@@ -57,7 +57,7 @@ object ReaderApp extends App {
         transactions
           .map(t => Transaction(currency, t.price * exchanges(t.currency, currency)))
           .reduce { (acc, cur) =>
-            acc.copy(price = acc.price + (cur.price * exchanges(cur.currency, currency)))
+            acc.copy(price = acc.price + cur.price)
           }
       }
 
