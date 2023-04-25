@@ -40,15 +40,29 @@ object WriterApp extends App {
 
   object WriterService {
     type WithLogs[A] = Writer[Logs, A]
+
     object WithLogs {
       def log(str: String): WithLogs[Unit] =
         Writer.tell(Logs.single(str))
     }
 
-    def transact(good: Good): WithLogs[Transaction] = ???
+    def transact(good: Good): WithLogs[Transaction] =
+      WithLogs.log(s"spent ${good.price}").map(_ => Transaction(good.price))
 
-    def aggregate(transactions: NonEmptyList[Transaction]): WithLogs[Transaction] = ???
+    def aggregate(transactions: NonEmptyList[Transaction]): WithLogs[Transaction] =
+      for {
+        all <- transactions.reduce((x, y) => Transaction.semigroup.combine(x, y)).pure[WithLogs]
+        _   <- WithLogs.log(str = "spent total " + all.price)
+      } yield all
 
-    def buyAll(wallet: Wallet): WithLogs[Wallet] = ???
+    def buyAll(wallet: Wallet): WithLogs[Wallet] =
+      for {
+        transact1 <- transact(Good(1))
+        transact2 <- transact(Good(2))
+        transact3 <- transact(Good(3))
+        all       <- aggregate(NonEmptyList.of(transact1, transact2, transact3))
+
+      } yield wallet.copy(amount = wallet.amount - all.price)
+
   }
 }
