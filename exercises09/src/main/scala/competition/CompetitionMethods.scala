@@ -19,10 +19,9 @@ class CompetitionMethods[F[_]: Monad](service: TwitterService[F]) {
   def unlikeAll(user: User, tweetIds: List[TweetId]): F[Unit] = {
     for {
       tweets <- service.getTweets(tweetIds)
-      res <- tweets.found.toList.traverse(x => service.unlike(user, x.id))
+      res    <- tweets.found.toList.traverse(x => service.unlike(user, x.id))
     } yield res
   }
-
 
   /**
     * В этом методе надо:

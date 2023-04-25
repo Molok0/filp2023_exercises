@@ -9,12 +9,19 @@ import service.{TwitterService, TwitterServiceIO}
 import twitter.domain.User
 import twitter.{LocalTwitterApi, TwitterApi}
 
-class IOCompetitionSpec extends AsyncWordSpec with AsyncIOSpec with Matchers{
+import java.util.concurrent.Executors
+import scala.concurrent.ExecutionContext.fromExecutor
+
+class IOCompetitionSpec extends AsyncWordSpec with AsyncIOSpec with Matchers {
   val oleg: User = User("oleg")
   val ivan: User = User("ivan")
+  val igor: User = User("igor")
   val bot: User  = User("bot")
 
   val users = List(oleg, ivan, bot)
+
+  val ctx1 = fromExecutor(Executors.newFixedThreadPool(1))
+  val ctx2 = fromExecutor(Executors.newFixedThreadPool(2))
 
   "IOCompetition" should {
     "empty competition" in {
@@ -48,6 +55,7 @@ class IOCompetitionSpec extends AsyncWordSpec with AsyncIOSpec with Matchers{
 
       new IOCompetition(service, methods)
         .winner(users, followers, bot)
+        .evalOn(ctx2)
         .asserting(_ shouldBe oleg)
     }
 
@@ -65,10 +73,12 @@ class IOCompetitionSpec extends AsyncWordSpec with AsyncIOSpec with Matchers{
 
       new IOCompetition(service, methods)
         .winner(users, followers, bot)
+        .evalOn(ctx2)
         .asserting(_ shouldBe ivan)
     }
 
     "sync competition oleg win" in {
+
       val api: TwitterApi =
         new LocalTwitterApi(Iterator.continually(0), Map(oleg -> 100))
       val service: TwitterService[IO]     = new TwitterServiceIO(api)
@@ -82,23 +92,25 @@ class IOCompetitionSpec extends AsyncWordSpec with AsyncIOSpec with Matchers{
 
       new IOCompetition(service, methods)
         .winner(users, followers, bot)
+        .evalOn(ctx1)
         .asserting(_ shouldBe oleg)
     }
 
     "async competition ivan win max likes" in {
       val api: TwitterApi =
-        new LocalTwitterApi(Iterator.continually(0))
+        new LocalTwitterApi(Iterator.continually(10))
       val service: TwitterService[IO]     = new TwitterServiceIO(api)
       val methods: CompetitionMethods[IO] = new CompetitionMethods[IO](service)
 
       val followers: Map[User, List[User]] = Map(
         oleg -> List(ivan),
-        ivan -> List(oleg, ivan),
+        ivan -> List(oleg, igor),
         bot  -> Nil
       )
 
       new IOCompetition(service, methods)
         .winner(users, followers, bot)
+        .evalOn(ctx2)
         .asserting(_ shouldBe ivan)
     }
 
@@ -116,6 +128,7 @@ class IOCompetitionSpec extends AsyncWordSpec with AsyncIOSpec with Matchers{
 
       new IOCompetition(service, methods)
         .winner(users, followers, bot)
+        .evalOn(ctx2)
         .asserting(_ shouldBe ivan)
     }
   }
