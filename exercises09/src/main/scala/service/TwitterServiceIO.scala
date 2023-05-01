@@ -25,22 +25,21 @@ class TwitterServiceIO(api: TwitterApi) extends TwitterService[IO] {
       })
 
   def getTweet(tweetId: TweetId): IO[GetTweetResponse] = {
-    IO.async_((cb: Either[Throwable, GetTweetResponse] => Unit) =>
-        api.get(tweetId)(x =>
-          cb((x match {
-            case Failure(_)     => Success(NotFound(tweetId))
-            case Success(value) => Success(Found(value))
-          }).toEither)
-        )
+    IO.async_(cb =>
+      api.get(tweetId)(x =>
+        cb(x match {
+          case Success(value) => Right(Found(value))
+          case Failure(_)     => Right(NotFound(tweetId))
+        })
       )
-      .recover(PartialFunction.empty)
+    )
   }
 
   def getTweets(ids: List[TweetId]): IO[GetTweetsResponse] = {
     ids
       .traverse(getTweet)
-      .map(list =>
-        list.foldLeft(GetTweetsResponse(Set.empty[TweetId], Set.empty[TweetInfo])) { (tweets, response) =>
+      .map(tweets =>
+        tweets.foldLeft(GetTweetsResponse(Set.empty[TweetId], Set.empty[TweetInfo])) { (tweets, response) =>
           response match {
             case Found(v)    => GetTweetsResponse(tweets.notFound, tweets.found + v)
             case NotFound(v) => GetTweetsResponse(tweets.notFound + v, tweets.found)

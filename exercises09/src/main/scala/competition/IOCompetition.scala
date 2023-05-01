@@ -30,10 +30,10 @@ class IOCompetition(service: TwitterService[IO], methods: CompetitionMethods[IO]
           .tweet(user, s"${user.id} will win!")
           .flatMap(id => followers(user).parTraverse(service.like(_, id)).map(_ => id))
       )
-      _      <- methods.unlikeAll(botUser, tweetIds)
-      winner <- methods.topAuthor(tweetIds)
-      option <- IO.fromOption(winner)(TopAuthorNotFound)
-    } yield option
+      _           <- methods.unlikeAll(botUser, tweetIds)
+      maybeWinner <- methods.topAuthor(tweetIds)
+      winner      <- IO.fromOption(maybeWinner)(TopAuthorNotFound)
+    } yield winner
 
 }
 

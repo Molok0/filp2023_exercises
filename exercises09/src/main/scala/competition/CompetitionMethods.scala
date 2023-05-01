@@ -19,7 +19,9 @@ class CompetitionMethods[F[_]: Monad](service: TwitterService[F]) {
   def unlikeAll(user: User, tweetIds: List[TweetId]): F[Unit] = {
     for {
       tweets <- service.getTweets(tweetIds)
-      res    <- tweets.found.toList.traverse(x => service.unlike(user, x.id))
+      res <- tweets.found.toList
+        .filter(x => x.likedBy.contains(user))
+        .traverse(tweet => service.unlike(user, tweet.id))
     } yield res
   }
 
@@ -31,9 +33,10 @@ class CompetitionMethods[F[_]: Monad](service: TwitterService[F]) {
   def topAuthor(tweetIds: List[TweetId]): F[Option[User]] = {
     for {
       tweets <- service.getTweets(tweetIds)
-    } yield tweets.found
-      .maxByOption(identity)((cur, next) => (cur.likedBy.size, next.created).compareTo(next.likedBy.size, cur.created))
-      .map(x => x.author)
+      topTweet = tweets.found.maxByOption(identity)((cur, next) =>
+        (cur.likedBy.size, next.created).compareTo(next.likedBy.size, cur.created)
+      )
+    } yield topTweet.map(_.author)
   }
 
 }
