@@ -5,6 +5,7 @@ import service.TwitterService
 import twitter.domain.User
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 /**
   * Конкурс! Кто наберет больше лайков под своим постом - тот победил
@@ -29,7 +30,21 @@ class FutureCompetition(service: TwitterService[Future], methods: CompetitionMet
       users: List[User],
       followers: Map[User, List[User]],
       botUser: User
-  ): Future[User] = ???
+  ): Future[User] =
+    for {
+      tweets <- Future.traverse(users)(user =>
+        service
+          .tweet(user, s"${user.id} will win!")
+          .flatMap(id => Future.traverse(followers(user))(service.like(_, id)).map(_ => id))
+      )
+      _              <- methods.unlikeAll(botUser, tweets)
+      possibleWinner <- methods.topAuthor(tweets)
+      winner <- possibleWinner match {
+        case Some(value) => Future.successful(value)
+        case None        => Future.failed(TopAuthorNotFound)
+      }
+    } yield winner
+
 }
 
 object FutureCompetitionStart extends App {
