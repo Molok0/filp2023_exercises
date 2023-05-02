@@ -51,5 +51,39 @@ import cats.implicits._
  */
 class Crawler(client: HttpClient[IO])(implicit cs: ContextShift[IO]) {
 
-  def crawl(root: HttpClient.URL): IO[Set[HttpClient.URL]] = ???
+  def crawl(root: HttpClient.URL): IO[Set[HttpClient.URL]] = {
+    def crawl_in(
+        urls: List[HttpClient.URL],
+        visited: Set[HttpClient.URL],
+        banned: Set[HttpClient.URL],
+        attempt: Integer
+    ): IO[Set[HttpClient.URL]] = {
+      if (attempt < 3) {
+        IO(
+          urls.headOption match {
+            case None => visited
+            case Some(x) =>
+              client
+                .get(x)
+                .map(r => UrlSearch.search(root, x, r))
+                .flatMap(inner_links =>
+                  crawl_in(
+                    (inner_links.toList ::: urls).toSet.diff(visited + x).diff(banned).toList,
+                    visited + x,
+                    banned,
+                    0
+                  )
+                )
+                .unsafeRunSync()
+          }
+        ).handleErrorWith(_ => crawl_in(urls, visited, banned, attempt + 1))
+      } else {
+        urls match {
+          case head :: tail => crawl_in(tail, visited, banned + head, 0)
+        }
+      }
+    }
+    crawl_in(List(root), Set(root), Set(), 0)
+  }
+
 }
