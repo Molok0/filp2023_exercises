@@ -1,5 +1,7 @@
 package exercises02.game
 
+import scala.annotation.tailrec
+
 class Game(controller: GameController) {
 
   /**
@@ -16,5 +18,36 @@ class Game(controller: GameController) {
     *
     * @param number загаданное число
     */
-  def play(number: Int): Unit = ???
+  @tailrec
+  final def play(number: Int): Unit = {
+
+    controller.askNumber()
+    val gameNumb = controller.nextLine()
+
+    gameNumb.toIntOption match {
+
+      case Some(value) => {
+        if (value < number) {
+          controller.numberIsBigger
+          play(number)
+        } else if (value > number) {
+          controller.numberIsSmaller
+          play(number)
+        } else {
+          controller.guessed
+        }
+      }
+      case None => {
+        if (gameNumb == GameController.IGiveUp) {
+          controller.giveUp(number)
+        } else {
+          controller.wrongInput
+          play(number)
+        }
+      }
+
+    }
+
+  }
+
 }
